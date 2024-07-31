@@ -1,5 +1,15 @@
+.darkerBone {
+    background-color: #c0beaf
+}
+
+
 .darkBone {
-    background-color: #D2D0BD
+    background-color: #eeecdc
+}
+
+.bone
+{
+    background-color: #F9F6EE;
 }
 
 
@@ -7,7 +17,15 @@
     background-color: antiquewhite;
 }
 
-
-.blue {
-    background-color: brown;
+.vaporwave
+{
+    background-image: linear-gradient(to bottom, transparent, #F9F6EE), 
+    url(/frontend/frontpage-background.webp);
+    background-position: center;
 }
+
+.boneTable {
+    color: black;
+    background-color: #F9F6EE;
+}
+
