@@ -1,7 +1,7 @@
 import os, sys
 from functools import reduce
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, FileResponse
 
 
@@ -15,25 +15,24 @@ rootDir = list(filter(lambda x : x.name == projectName, potentials))[-1] #should
 sys.path.append(str(rootDir))
 sys.path = sorted(list(set(sys.path)))
 
-homePagePath = rootDir / 'frontend' / 'index.html'
-styleSheetPath = rootDir / 'frontend' / 'styles.css'
-faviconPath = rootDir / 'frontend' / 'favicon.ico'
+mappingTable = {
+    'index.html': rootDir / 'frontend' / 'index.html',
+    'styles.css': rootDir / 'frontend' / 'styles.css',
+    'favicon.ico': rootDir / 'frontend' / 'favicon.ico',
+    'nwsTerminalApp.html': rootDir / 'frontend' / 'personal' /'weather-terminal' / 'nwsTerminalApp.html',
+    'weather-terminal-screen-shot.jpg': rootDir / 'frontend' / 'personal' /'weather-terminal' / 'weather-terminal-screen-shot.jpg',
+    'frontpage-background.webp': rootDir / 'frontend' / 'frontpage-background.webp'
+}
 app = FastAPI(debug = True)
 
 
-@app.get("/frontend/index.html", response_class = HTMLResponse)
-async def getHome():
-    fileHandle = open(homePagePath, "r")
-    data = fileHandle.read()
-    return data
+@app.get("/frontend/{pageName}", response_class = FileResponse)
+async def getPage(pageName):
+    filePath = mappingTable[pageName]    
+    return filePath
 
 
-@app.get("/frontend/styles.css", response_class = FileResponse)
-async def getStyleSheet():
-    return styleSheetPath
-
-
-@app.get("/frontend/favicon.ico", response_class = FileResponse)
-async def getFavicon():
-    print("get favicon")
-    return faviconPath
+@app.get("/{pageName}", response_class = FileResponse)
+async def getPage(pageName):
+    filePath = mappingTable[pageName]    
+    return filePath
