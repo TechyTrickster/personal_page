@@ -21,6 +21,7 @@ mappingTable = {
     'favicon.ico': rootDir / 'frontend' / 'favicon.ico',
     'nwsTerminalApp.html': rootDir / 'frontend' / 'personal' /'weather-terminal' / 'nwsTerminalApp.html',
     'weather-terminal-screen-shot.jpg': rootDir / 'frontend' / 'personal' /'weather-terminal' / 'weather-terminal-screen-shot.jpg',
+    'hadoop.html': rootDir / 'frontend' / 'personal' / 'hadoop-CaI' / 'hadoop.html',
     'frontpage-background.webp': rootDir / 'frontend' / 'frontpage-background.webp'
 }
 app = FastAPI(debug = True)
