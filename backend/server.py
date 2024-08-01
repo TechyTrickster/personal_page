@@ -15,15 +15,32 @@ rootDir = list(filter(lambda x : x.name == projectName, potentials))[-1] #should
 sys.path.append(str(rootDir))
 sys.path = sorted(list(set(sys.path)))
 
-mappingTable = {
-    'index.html': rootDir / 'frontend' / 'index.html',
-    'styles.css': rootDir / 'frontend' / 'styles.css',
-    'favicon.ico': rootDir / 'frontend' / 'favicon.ico',
-    'nwsTerminalApp.html': rootDir / 'frontend' / 'personal' /'weather-terminal' / 'nwsTerminalApp.html',
-    'weather-terminal-screen-shot.jpg': rootDir / 'frontend' / 'personal' /'weather-terminal' / 'weather-terminal-screen-shot.jpg',
-    'hadoop.html': rootDir / 'frontend' / 'personal' / 'hadoop-CaI' / 'hadoop.html',
-    'frontpage-background.webp': rootDir / 'frontend' / 'frontpage-background.webp'
-}
+
+def findFiles(dir: Path) -> list[Path]:
+    """
+    small function to recursively search a given folder to list out all of the contained
+    files.
+
+    Parameters:
+    dir (Path) : path to start the search in
+
+    Returns:
+    (list[Path]) : the list of paths of all of the files under the input directory
+    """
+    output = []
+    dirs = list(os.walk(dir))
+    for element in dirs:
+        if (".git" not in str(element)) and ("venv_page" not in str(element)):
+            data = list(map(lambda x : Path(element[0]) / x, element[2]))
+            output.extend(data)
+
+    return output
+
+mappingTable = {}
+files = findFiles(rootDir / 'frontend')
+list(map(lambda x : mappingTable.update({x.name : x}), files))
+print(mappingTable)
+
 app = FastAPI(debug = True)
 
 
@@ -37,3 +54,5 @@ async def getPage(pageName):
 async def getPage(pageName):
     filePath = mappingTable[pageName]    
     return filePath
+
+
