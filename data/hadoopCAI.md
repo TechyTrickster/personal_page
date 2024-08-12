@@ -1,8 +1,8 @@
 ---
 title: Hadoop Cluster Maker
 summary: that time i independently discovered infrastructure as code to save time.
-created-on:
-last-modified:
+created-on: 20/11/2020 07:21PM CDT
+last-modified: 20/11/2020 07:39PM CDT
 author: Andrew Phifer
 link: https://github.com/TechyTrickster/Hadoop-2.10.1-Deployment-Script
 ---
