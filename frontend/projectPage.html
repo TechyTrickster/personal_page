@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block pageContent %}
+    <div class = "container vaporwave gx-2">
+        <h1>{{title}}</h1>                        
+        <small class = "text-muted"> Originally Published date {{createdOn}}, last modified on {{modifiedOn}}</small>
+        <br>
+        <small class = "text"><a href = "{{sourceCodeLink}}" target = "_blank">view project on github</a></small>
+    </div>
+
+    <div class = "hr"></div>
+    {{bodyText | safe}}
+{% endblock %}
