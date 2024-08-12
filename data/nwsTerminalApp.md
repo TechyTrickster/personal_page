@@ -1,8 +1,8 @@
 ---
 title: National Weather Service
 summary: a terminal toy for displaying the weather
-created-on:
-last-modified:
+created-on: 05/1/2021 02:04PM CDT
+last-modified: 31/07/2024 04:59PM CDT
 author: Andrew Phifer
 link: https://github.com/TechyTrickster/Weather-Terminal
 
@@ -21,32 +21,3 @@ The system extracts text using a series of heuristics based on html base tags an
 
 
 The block text is generated using toilet.  You indicate the area for which you'd like a forecast for by entering the town followed by the standard state name abreviation as arguments to the program at the command line.
-
-| Syntax | Description |
-| ----------- | ----------- |
-| Header | Title |
-| Paragraph | Text |
-
-walkabout
-: to go on an aimless journey of self exporlation
-
-~~asdf~~
-## task list
-- [x] item one
-
-==hightlighted text==
-
-H~2~0
-
-```
-:::python
-x = 1 if a == "2" else 0
-```
-
-[^1]: foot note test
-
->block quote of text of truth!!!
->more lines in quote
-
-
-this is `text`!
