@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from functools import reduce
 from pathlib import Path
 from flask import Flask, Response, render_template, send_file, render_template_string
-from markdown import markdown
+from markdown import markdown, Markdown
 
 
 projectName = "personal_page"
@@ -118,6 +118,7 @@ class Portfolio:
         return output
 
 
+    #TODO: generate formatted dates
     def getProjectPage(self, name: str) -> str:
         print(name)
         projectPagePath = self.mappingTable["projectPage.html"]
@@ -154,27 +155,37 @@ class Portfolio:
         self.pageLinks = list(map(lambda x : f"/projects/{x[1]}", projectLinks))        
 
 
+    def removePreviewMaterials(data: str) -> str:
+        lines = data.split('\n')
+        hasPreviewTitle = any(list(map(lambda x : "#Title" in x, lines)))
+        hasPreviewLink = any(list(map(lambda x : "#Link" in x, lines)))
+        buffer0 = Portfolio.removeTagFromText(lines, "Title") if hasPreviewTitle else lines
+        buffer1 = Portfolio.removeTagFromText(buffer0, "Link") if hasPreviewLink else buffer0
+        output = reduce(lambda x , y : x + '\n' + y, buffer1)
+        return output
+
     @staticmethod
     def modifyImgTag(imgTag):
         print("mod")
         imgTag['class'] = imgTag.get('class', []) + ['img-fluid']
 
 
-    def generateDBEntries(self):       
+    def generateDBEntries(self):               
         print("loading db contents") 
+
         for element in self.articlePaths:
             pageName = element.stem            
             createdOn = int(os.path.getctime(element))
             modifiedOn = int(os.path.getmtime(element))
-            raw = Portfolio.loadTextFile(element)            
-            linesBuffer0 = raw.split("\n")
-            title = Portfolio.extractTaggedText(linesBuffer0, "Title")
-            codeLink = Portfolio.extractTaggedText(linesBuffer0, "Link")
-            linesBuffer1 = Portfolio.removeTagFromText(linesBuffer0, "Title")
-            lines = Portfolio.removeTagFromText(linesBuffer1, "Link")
-            bodyBuffer0 = reduce(lambda x , y : x + '\n' + y, lines)
-            bodyBuffer1 = markdown(bodyBuffer0, extensions = ['extra', 'markdown_mark', 'markdown_checklist.extension', 'sane_lists', 'pymdownx.tilde', 'codehilite'])
-            doc = BeautifulSoup(bodyBuffer1, features = 'html.parser')
+            raw0 = Portfolio.loadTextFile(element)                        
+            raw1 = Portfolio.removePreviewMaterials(raw0)
+            converter = Markdown(extensions = ['extra', 'markdown_mark', 'markdown_checklist.extension', 'sane_lists', 'pymdownx.tilde', 'codehilite', 'meta'])
+            bodyBuffer = converter.convert(raw1)
+            metaData = converter.Meta
+            title = metaData['title'][0]
+            codeLink = metaData['link'][0]
+            print(title, codeLink)
+            doc = BeautifulSoup(bodyBuffer, features = 'html.parser')
             imageTags = doc.find_all('img')            
             list(map(lambda x : Portfolio.modifyImgTag(x), imageTags))
             bodyBuffer2 = doc.prettify()
