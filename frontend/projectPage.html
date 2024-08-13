@@ -1,9 +1,29 @@
 {% extends 'base.html' %}
 
 {% block pageContent %}
-    <div class = "container vaporwave gx-2">
+    <script src = "/frontend/projectHandler.js"></script>
+    <link rel = "stylesheet" href="/frontend/flip-card.css">
+    <div class = "container vaporwave gx-2" onload = "convertPageElements()">
         <h1>{{title}}</h1>                        
-        <small class = "text-muted"> Originally Published date {{createdOn}}, last modified on {{modifiedOn}}</small>
+        <small class = "text-muted">
+            Originally Published date 
+            <div id = "flipFrame-1" class = "flip-card">
+                <div class = "shadow-box"></div>
+                <div class = "flip-card-inner">
+                    <div class = "flip-card-front" id = "createdOn">{{createdOn}}</div>
+                    <div class = "flip-card-back" id = "createdOn-2"></div>
+                </div>                
+            </div>                                    
+            last modified on 
+            <div id = "flipFrame-2" class = "flip-card">
+                <div class = "shadow-box"></div>
+                <div class = "flip-card-inner">
+                    <div class = "flip-card-front" id = "modifiedOn">{{modifiedOn}}</div>
+                    <div class = "flip-card-back" id = "modifiedOn-2"></div>
+                </div>                
+            </div>            
+        </small>
+        
         <br>
         <small class = "text"><a href = "{{sourceCodeLink}}" target = "_blank">view project on github</a></small>
     </div>
