@@ -1,6 +1,8 @@
+from datetime import datetime
 import html
 import re
 import os, sys, sqlite3, socket
+import time
 from bs4 import BeautifulSoup
 from functools import reduce
 from pathlib import Path
@@ -50,7 +52,7 @@ class Portfolio:
             '.jpg': 'image/jpg',
             '.webp': 'image/webp',
             '.svg': 'image/svg+xml',
-            '.js': 'application/json',
+            '.js': 'text/javascript',
             '.pdf': 'application/pdf',
             '.sh': 'application/x-sh',
             '.xml': 'application/xml',
@@ -174,9 +176,7 @@ class Portfolio:
         print("loading db contents") 
 
         for element in self.articlePaths:
-            pageName = element.stem            
-            createdOn = int(os.path.getctime(element))
-            modifiedOn = int(os.path.getmtime(element))
+            pageName = element.stem                        
             raw0 = Portfolio.loadTextFile(element)                        
             raw1 = Portfolio.removePreviewMaterials(raw0)
             converter = Markdown(extensions = ['extra', 'markdown_mark', 'markdown_checklist.extension', 'sane_lists', 'pymdownx.tilde', 'codehilite', 'meta'])
@@ -184,7 +184,8 @@ class Portfolio:
             metaData = converter.Meta
             title = metaData['title'][0]
             codeLink = metaData['link'][0]
-            print(title, codeLink)
+            createdOn = time.mktime(datetime.strptime(metaData['created-on'][0].strip(), "%d/%m/%Y %I:%M%p %Z").timetuple())
+            modifiedOn = time.mktime(datetime.strptime(metaData['last-modified'][0].strip(), "%d/%m/%Y %I:%M%p %Z").timetuple())
             doc = BeautifulSoup(bodyBuffer, features = 'html.parser')
             imageTags = doc.find_all('img')            
             list(map(lambda x : Portfolio.modifyImgTag(x), imageTags))
