@@ -51,6 +51,8 @@ function configFlipCard(front, back, coreDiv)
     formattedHeight = maxHeight + "px"    
     front.style.height = formattedHeight;
     front.style.width = formattedWidth;
+    back.style.height = formattedHeight;
+    back.style.width = formattedWidth;
     coreDiv.style.height = formattedHeight;
     coreDiv.style.width = formattedWidth;
 }
