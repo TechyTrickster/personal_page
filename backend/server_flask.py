@@ -1,5 +1,6 @@
 from datetime import datetime
 import html
+import random
 import re
 import os, sys, sqlite3, socket
 import time
@@ -62,12 +63,22 @@ class Portfolio:
             '.css': 'text/css'
         }
 
+        #TODO: load this list dynamically
+        self.cardColorList = [
+            'vapor-green',
+            'vapor-blue',
+            'vapor-purple',
+            'vapor-red',
+            'vapor-yellow'
+        ]
+
         self.app = Flask(__name__, template_folder = self.templatePath)
         self.app.add_url_rule("/home", view_func = self.getHomePage)
         self.app.add_url_rule("/frontend/<path:name>", view_func = self.getFile)
         self.app.add_url_rule("/projects/<name>", view_func = self.getProjectPage)
         self.connection = sqlite3.connect(":memory:", check_same_thread = False) #use file once change detection has been implemented
         self.cursor = self.connection.cursor()        
+        self.colorOrder = []
 
 
     @staticmethod
@@ -110,7 +121,8 @@ class Portfolio:
     def getHomePage(self) -> str:
         homePagePath = self.mappingTable["homePage.html"]
         data = Portfolio.loadTextFile(homePagePath)
-        output = render_template_string(data, projectLinks = self.pageLinks, projectNames = self.pageTitles, title = "Home", len = self.numberOfProjects)
+        output = render_template_string(data, projectLinks = self.pageLinks, projectNames = self.pageTitles, 
+                    title = "Home", len = self.numberOfProjects, cardColor = self.colorOrder)
         return output
     
 
@@ -119,8 +131,7 @@ class Portfolio:
         output = render_template(projectTimeLinePath)
         return output
 
-
-    #TODO: generate formatted dates
+    
     def getProjectPage(self, name: str) -> str:
         print(name)
         projectPagePath = self.mappingTable["projectPage.html"]
@@ -129,9 +140,11 @@ class Portfolio:
         pageBuffer = self.cursor.execute(f"select * from articles where pageName = '{name}';")        
         data = pageBuffer.fetchone()                
         print(data)
-        output = render_template_string(pageData, projectNames = self.pageTitles, projectLinks = self.pageLinks, 
-                                        title = data[1], createdOn = data[2], modifiedOn = data[3], 
-                                        bodyText = html.unescape(data[4]), sourceCodeLink = data[5], len = self.numberOfProjects)
+        output = render_template_string(pageData, projectNames = self.pageTitles, 
+                    projectLinks = self.pageLinks, title = data[1], 
+                    createdOn = data[2], modifiedOn = data[3], 
+                    bodyText = html.unescape(data[4]), sourceCodeLink = data[5], 
+                    len = self.numberOfProjects, cardColor = self.colorOrder)
         return output
 
 
@@ -166,9 +179,9 @@ class Portfolio:
         output = reduce(lambda x , y : x + '\n' + y, buffer1)
         return output
 
+
     @staticmethod
-    def modifyImgTag(imgTag):
-        print("mod")
+    def modifyImgTag(imgTag):        
         imgTag['class'] = imgTag.get('class', []) + ['img-fluid']
 
 
@@ -206,6 +219,29 @@ class Portfolio:
         handle.close()
 
 
+    #caution, running this on bootup each time could leak information to hostile hackers indicating that they successfully crashed the server!
+    #TODO: add reject check if color list contains duplicates when the link count is less than the color pallet size
+    def generateCardColorList(self, numberOfLinks) -> list[str]:
+        northNeighborSame = lambda index, data : False if index == 0 else data[index] == data[index -1]
+        southNeighborSame = lambda index, data : False if index == (len(data) - 1) else data[index + 1] == data[index]
+        differentFromNeighbors = lambda index, data : not northNeighborSame(index, data) and not southNeighborSame(index, data)
+        validCardColorList = lambda data : list(map(lambda index : differentFromNeighbors(index, data), range(0, len(data))))
+        copyListExcluding = lambda data, exclusions : list(filter(lambda x : x not in exclusions, data))        
+        generateColorList = lambda colorList, length : reduce(lambda accu, i : accu + [random.choice(copyListExcluding(colorList, accu[-1]))], range(0, length - 1), [random.choice(colorList)])
+        containsAllColors = lambda data, reference : all(list(map(lambda x : x in data, reference)))
+
+        go = True
+        output = []
+        while go:
+            output = generateColorList(self.cardColorList, numberOfLinks)
+            print(output)
+            colorCheck = containsAllColors(output, self.cardColorList) or (numberOfLinks < len(self.cardColorList))
+            go = not (validCardColorList(output) and colorCheck)
+
+        return output
+
+
+
     def start(self):
         self.files = Portfolio.findFiles(rootDir / 'frontend')
         self.files.extend(Portfolio.findFiles(rootDir / 'data'))
@@ -219,6 +255,7 @@ class Portfolio:
         self.generateDBEntries()
         self.getProjectPages()
         self.numberOfProjects = len(self.pageLinks)
+        self.colorOrder = self.generateCardColorList(self.numberOfProjects)
         self.app.run(debug = True, host = socket.gethostbyname(socket.gethostname()))
 
 
