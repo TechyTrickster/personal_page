@@ -1,14 +1,18 @@
 from datetime import datetime
 import html
+from multiprocessing import Process
 import random
 import re
 import os, sys, sqlite3, socket
+from threading import Thread
 import time
 from bs4 import BeautifulSoup
 from functools import reduce
 from pathlib import Path
 from flask import Flask, Response, render_template, send_file, render_template_string
 from markdown import markdown, Markdown
+from watchdog.observers import Observer
+from watchdog.events import LoggingEventHandler, FileSystemEventHandler
 
 
 projectName = "personal_page"
@@ -20,10 +24,12 @@ potentials = list(map(lambda x : moveUpDegrees(scriptPath, x), range(0, len(scri
 rootDir: Path = list(filter(lambda x : x.name == projectName, potentials))[-1] #should always grab the shortest possible, and therefore most likely to be actual root path, even if the root directory name was reused.
 sys.path.append(str(rootDir))
 sys.path = sorted(list(set(sys.path)))
+initial = str(Process.pid)
 
 
 
-
+#TODO: add caching of pages
+#TODO: add auto-update of pages with md or image files are updated
 class Portfolio:
     """
     a project based portfolio website template built using flask.  
@@ -70,15 +76,17 @@ class Portfolio:
             'vapor-purple',
             'vapor-red',
             'vapor-yellow'
-        ]
+        ]        
 
+        self.connection = None
+        self.cursor = None
         self.app = Flask(__name__, template_folder = self.templatePath)
         self.app.add_url_rule("/home", view_func = self.getHomePage)
-        self.app.add_url_rule("/frontend/<path:name>", view_func = self.getFile)
-        self.app.add_url_rule("/projects/<name>", view_func = self.getProjectPage)
-        self.connection = sqlite3.connect(":memory:", check_same_thread = False) #use file once change detection has been implemented
-        self.cursor = self.connection.cursor()        
+        self.app.add_url_rule("/frontend/<path:name>", view_func = self.getFront)
+        self.app.add_url_rule("/data/<path:name>", view_func = self.getData)
+        self.app.add_url_rule("/projects/<name>", view_func = self.getProjectPage)        
         self.colorOrder = []
+        self.appThread = None
 
 
     @staticmethod
@@ -109,10 +117,21 @@ class Portfolio:
         output = handle.read()
         handle.close()
         return output
+    
+
+    def getData(self, name: str) -> Response:
+        return self.getFile("data", name)
+    
+
+    def getFront(self, name: str) -> Response:
+        return self.getFile("frontend", name)
+
 
         
-    def getFile(self, name: str) -> Response:        
-        pathToFile = self.templatePath / name
+    def getFile(self, folder: str, name: str) -> Response:
+        print(name)
+
+        pathToFile = rootDir / folder / name
         print(f"getting file: {pathToFile}")
         mimeType = self.mimeTable[pathToFile.suffix]
         return send_file(pathToFile, mimetype = mimeType)
@@ -192,7 +211,7 @@ class Portfolio:
             pageName = element.stem                        
             raw0 = Portfolio.loadTextFile(element)                        
             raw1 = Portfolio.removePreviewMaterials(raw0)
-            converter = Markdown(extensions = ['extra', 'markdown_mark', 'markdown_checklist.extension', 'sane_lists', 'pymdownx.tilde', 'codehilite', 'meta'])
+            converter = Markdown(extensions = ['extra', 'markdown_mark', 'markdown_checklist.extension', 'sane_lists', 'pymdownx.tilde', 'codehilite', 'meta', 'nl2br'])
             bodyBuffer = converter.convert(raw1)
             metaData = converter.Meta
             title = metaData['title'][0]
@@ -241,22 +260,54 @@ class Portfolio:
         return output
 
 
-
-    def start(self):
+    def config(self):
         self.files = Portfolio.findFiles(rootDir / 'frontend')
         self.files.extend(Portfolio.findFiles(rootDir / 'data'))
-        print(self.files)
-        self.articlePaths = list(filter(lambda x : (str(self.dataFolder) in str(x)) and (x.suffix == ".md"), self.files))
-        print(self.articlePaths)
+        self.articlePaths = list(filter(lambda x : (str(self.dataFolder) in str(x)) and (x.suffix == ".md"), self.files))        
         list(map(lambda x : self.mappingTable.update({x.stem : x}), self.files))
         list(map(lambda x : self.mappingTable.update({x.name : x}), self.files))
-        print(self.mappingTable)
+        self.connection = sqlite3.connect(":memory:", check_same_thread = False) #use file once change detection has been implemented
+        self.cursor = self.connection.cursor()        
         self.constructDB()
         self.generateDBEntries()
         self.getProjectPages()
         self.numberOfProjects = len(self.pageLinks)
         self.colorOrder = self.generateCardColorList(self.numberOfProjects)
-        self.app.run(debug = True, host = socket.gethostbyname(socket.gethostname()))
+
+
+    def start(self):
+        self.config()        
+        appRun = lambda : self.app.run(debug = False, host = socket.gethostbyname(socket.gethostname()))
+        self.appThread = Process(target = appRun)
+        self.appThread.start()        
+        print("running")
+
+
+
+
+
+class BasicEventHandler(FileSystemEventHandler):
+    """Logs all the events captured."""
+
+    def __init__(self):
+        super(BasicEventHandler, self).__init__()
+        self.eventFlag = True
+
+
+    def on_any_event(self, event):
+        super(BasicEventHandler, self).on_any_event(event)
+        print(event)
+        print("update occured!")
+        if(event.event_type != 'opened'):
+            self.eventFlag = True
+
+    def anythingHappen(self) -> bool:
+        output = self.eventFlag
+        self.eventFlag = False
+        return output
+        
+
+
 
 
 
@@ -264,3 +315,21 @@ class Portfolio:
 if __name__ == "__main__":
     instance = Portfolio()
     instance.start()
+    observer = Observer()
+    eventHanlder = BasicEventHandler()
+    observer.schedule(eventHanlder, rootDir / 'data', recursive = True)
+    observer.start()    
+    print(f"intial process {initial}")
+
+    while (str(Process.pid) == initial):
+        print(f"event loop: {int(time.time()), Process.pid}")
+        if eventHanlder.anythingHappen():
+            print("reload")
+            instance.config()
+
+        time.sleep(1)
+
+        
+        
+
+    
