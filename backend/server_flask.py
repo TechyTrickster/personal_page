@@ -87,6 +87,7 @@ class Portfolio:
         self.app.add_url_rule("/projects/<name>", view_func = self.getProjectPage)        
         self.colorOrder = []
         self.appThread = None
+        self.updateTime = None
 
 
     @staticmethod
@@ -163,7 +164,8 @@ class Portfolio:
                     projectLinks = self.pageLinks, title = data[1], 
                     createdOn = data[2], modifiedOn = data[3], 
                     bodyText = html.unescape(data[4]), sourceCodeLink = data[5], 
-                    len = self.numberOfProjects, cardColor = self.colorOrder)
+                    len = self.numberOfProjects, cardColor = self.colorOrder,
+                    systemUpdateTime = self.updateTime)
         return output
 
 
@@ -209,7 +211,8 @@ class Portfolio:
 
         for element in self.articlePaths:
             pageName = element.stem                        
-            raw0 = Portfolio.loadTextFile(element)                        
+            raw0 = Portfolio.loadTextFile(element)
+            print(f"file: {pageName}\n {raw0}")
             raw1 = Portfolio.removePreviewMaterials(raw0)
             converter = Markdown(extensions = ['extra', 'markdown_mark', 'markdown_checklist.extension', 'sane_lists', 'pymdownx.tilde', 'codehilite', 'meta', 'nl2br'])
             bodyBuffer = converter.convert(raw1)
@@ -258,6 +261,19 @@ class Portfolio:
             go = not (validCardColorList(output) and colorCheck)
 
         return output
+    
+
+    def setupDB(self):
+        if self.connection != None:
+            self.cursor.close()
+            self.connection.close()
+        
+        self.connection = sqlite3.connect(":memory:", check_same_thread = False) #use file once change detection has been implemented        
+        self.cursor = self.connection.cursor()        
+        self.constructDB()
+        self.generateDBEntries()
+        
+            
 
 
     def config(self):
@@ -265,21 +281,23 @@ class Portfolio:
         self.files.extend(Portfolio.findFiles(rootDir / 'data'))
         self.articlePaths = list(filter(lambda x : (str(self.dataFolder) in str(x)) and (x.suffix == ".md"), self.files))        
         list(map(lambda x : self.mappingTable.update({x.stem : x}), self.files))
-        list(map(lambda x : self.mappingTable.update({x.name : x}), self.files))
-        self.connection = sqlite3.connect(":memory:", check_same_thread = False) #use file once change detection has been implemented
-        self.cursor = self.connection.cursor()        
-        self.constructDB()
-        self.generateDBEntries()
+        list(map(lambda x : self.mappingTable.update({x.name : x}), self.files))                
+        self.setupDB()        
         self.getProjectPages()
         self.numberOfProjects = len(self.pageLinks)
         self.colorOrder = self.generateCardColorList(self.numberOfProjects)
+        self.updateTime = int(time.time())
+
+
+    def stop(self):
+        self.appThread.kill()
 
 
     def start(self):
         self.config()        
         appRun = lambda : self.app.run(debug = False, host = socket.gethostbyname(socket.gethostname()))
         self.appThread = Process(target = appRun)
-        self.appThread.start()        
+        self.appThread.start()
         print("running")
 
 
@@ -317,13 +335,15 @@ if __name__ == "__main__":
     observer = Observer()
     eventHanlder = BasicEventHandler()
     observer.schedule(eventHanlder, rootDir / 'data', recursive = True)
-    observer.start()    
+    observer.start()
     print(f"intial process {initial}")
 
+    #TODO: start implementing a smarter, more efficient update method
     while (str(Process.pid) == initial):        
         if eventHanlder.anythingHappen():
             print("reload")
-            instance.config()
+            instance.stop()
+            instance.start()
 
         time.sleep(1)
 
