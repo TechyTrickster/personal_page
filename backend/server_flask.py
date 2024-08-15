@@ -295,10 +295,9 @@ class BasicEventHandler(FileSystemEventHandler):
 
 
     def on_any_event(self, event):
-        super(BasicEventHandler, self).on_any_event(event)
-        print(event)
-        print("update occured!")
+        super(BasicEventHandler, self).on_any_event(event)        
         if(event.event_type != 'opened'):
+            print(event)            
             self.eventFlag = True
 
     def anythingHappen(self) -> bool:
@@ -321,8 +320,7 @@ if __name__ == "__main__":
     observer.start()    
     print(f"intial process {initial}")
 
-    while (str(Process.pid) == initial):
-        print(f"event loop: {int(time.time()), Process.pid}")
+    while (str(Process.pid) == initial):        
         if eventHanlder.anythingHappen():
             print("reload")
             instance.config()
