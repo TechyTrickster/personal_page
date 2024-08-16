@@ -48,9 +48,6 @@ class Portfolio:
         self.databaseConstructor = self.dataFolder / 'dbDefinition.sql'
         self.templatePath = rootDir / 'frontend'
         self.mappingTable = {}
-        self.pageTitles = []
-        self.pageLinks = []        
-        self.pageSummaries = []
         self.linkData = []
         self.numberOfProjects = 0
         self.mimeTable = {
@@ -269,10 +266,7 @@ class Portfolio:
 
     def getProjectPages(self):
         projectLinksBuffer = self.cursor.execute("select title, pageName, summary from articles")        
-        projectLinks = projectLinksBuffer.fetchall()
-        self.pageTitles = list(map(lambda x : x[0], projectLinks))
-        self.pageLinks = list(map(lambda x : f"/projects/{x[1]}", projectLinks))
-        self.pageSummaries = list(map(lambda x : x[2], projectLinks))
+        projectLinks = projectLinksBuffer.fetchall()        
         self.linkData = list(map(lambda x : {
             'URL': f"/projects/{x[1]}",
             'title': x[0],
