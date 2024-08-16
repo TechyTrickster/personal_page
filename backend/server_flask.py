@@ -50,6 +50,8 @@ class Portfolio:
         self.mappingTable = {}
         self.pageTitles = []
         self.pageLinks = []        
+        self.pageSummaries = []
+        self.linkData = []
         self.numberOfProjects = 0
         self.mimeTable = {
             '.png': 'image/png',
@@ -191,7 +193,7 @@ class Portfolio:
 
         homePagePath = self.mappingTable["homePage.html"]
         data = Portfolio.loadTextFile(homePagePath)
-        output = render_template_string(data, projectLinks = self.pageLinks, projectNames = self.pageTitles, 
+        output = render_template_string(data, pageData = self.linkData, 
                     title = "Home", len = self.numberOfProjects, cardColor = self.colorOrder)
         return output
     
@@ -218,10 +220,9 @@ class Portfolio:
         pageData = Portfolio.loadTextFile(projectPagePath)
         pageBuffer = self.cursor.execute(f"select * from articles where pageName = '{name}';")        
         data = pageBuffer.fetchone()                
-        output = render_template_string(pageData, projectNames = self.pageTitles, 
-                    projectLinks = self.pageLinks, title = data[1], 
+        output = render_template_string(pageData, pageData = self.linkData, title = data[1], 
                     createdOn = data[2], modifiedOn = data[3], 
-                    bodyText = html.unescape(data[4]), sourceCodeLink = data[5], 
+                    bodyText = html.unescape(data[4]), sourceCodeLink = data[6], 
                     len = self.numberOfProjects, cardColor = self.colorOrder,
                     systemUpdateTime = self.updateTime)
         return output
@@ -267,11 +268,17 @@ class Portfolio:
     
 
     def getProjectPages(self):
-        projectLinksBuffer = self.cursor.execute("select title, pageName from articles")        
+        projectLinksBuffer = self.cursor.execute("select title, pageName, summary from articles")        
         projectLinks = projectLinksBuffer.fetchall()
         self.pageTitles = list(map(lambda x : x[0], projectLinks))
         self.pageLinks = list(map(lambda x : f"/projects/{x[1]}", projectLinks))
-        self.numberOfProjects = len(self.pageLinks)
+        self.pageSummaries = list(map(lambda x : x[2], projectLinks))
+        self.linkData = list(map(lambda x : {
+            'URL': f"/projects/{x[1]}",
+            'title': x[0],
+            'summary': x[2]
+        }, projectLinks))
+        self.numberOfProjects = len(self.linkData)
 
 
     def removePreviewMaterials(data: str) -> str:
@@ -302,6 +309,7 @@ class Portfolio:
             metaData = converter.Meta
             title = metaData['title'][0]
             codeLink = metaData['link'][0]
+            summary = metaData['summary'][0]
             createdOn = time.mktime(datetime.strptime(metaData['created-on'][0].strip(), "%d/%m/%Y %I:%M%p %Z").timetuple())
             modifiedOn = time.mktime(datetime.strptime(metaData['last-modified'][0].strip(), "%d/%m/%Y %I:%M%p %Z").timetuple())
             doc = BeautifulSoup(bodyBuffer, features = 'html.parser')
@@ -310,8 +318,8 @@ class Portfolio:
             bodyBuffer2 = doc.prettify()
             body = html.escape(bodyBuffer2)
 
-            insertStatement = "insert into articles values (?, ?, ?, ?, ?, ?)"            
-            self.cursor.execute(insertStatement, (pageName, title, createdOn, modifiedOn, body, codeLink))
+            insertStatement = "insert into articles values (?, ?, ?, ?, ?, ?, ?)"
+            self.cursor.execute(insertStatement, (pageName, title, createdOn, modifiedOn, body, summary, codeLink))
 
         self.connection.commit()
 

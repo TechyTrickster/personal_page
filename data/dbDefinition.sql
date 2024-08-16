@@ -4,5 +4,6 @@ create table articles (
     creationDate int,
     modifiedDate int,
     body text,
+    summary text,
     sourceCodeLink text
 )
