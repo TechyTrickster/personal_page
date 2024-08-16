@@ -262,7 +262,7 @@ class Portfolio:
         Returns
             list[str]: a copy of the input list of strings, minus any elements which contained matches for the input tag
         """
-        
+
         tagValue = f"{{#{tagName}}}"
         output = list(filter(lambda x : tagValue not in x, inputBody))
         return output
@@ -272,7 +272,8 @@ class Portfolio:
         projectLinksBuffer = self.cursor.execute("select title, pageName from articles")        
         projectLinks = projectLinksBuffer.fetchall()
         self.pageTitles = list(map(lambda x : x[0], projectLinks))
-        self.pageLinks = list(map(lambda x : f"/projects/{x[1]}", projectLinks))        
+        self.pageLinks = list(map(lambda x : f"/projects/{x[1]}", projectLinks))
+        self.numberOfProjects = len(self.pageLinks)
 
 
     def removePreviewMaterials(data: str) -> str:
@@ -348,6 +349,11 @@ class Portfolio:
     
 
     def setupDB(self):
+        """
+        sets up the sqlite3, in-memory database.  will close out a pre-existing instance if one 
+        is already running.  Loads in data from the project markdown documents into the database
+        """
+
         if self.connection != None:
             self.cursor.close()
             self.connection.close()
@@ -361,23 +367,48 @@ class Portfolio:
 
 
     def config(self):
+        """
+        this coordinates all of the configuration and setup processes necessary before the webserver can start
+        It performs the following tasks, in order
+        1. finds all of the assets in the frontend folder (reusable / shared assets assets)
+        2. finds all of the assets in the data folder (actual project files)
+        3. generates the local paths to all of the project markdown documents
+        4. configures an in memory sqlite3 database using an sql script and loads in all the project data
+        5. generates all the pairs of project titles and URLs
+        6. pseudo-randomly generates the colors for the link cards in the side bar across the whole site
+        """
+
         self.files = Portfolio.findFiles(rootDir / 'frontend')
         self.files.extend(Portfolio.findFiles(rootDir / 'data'))
         self.articlePaths = list(filter(lambda x : (str(self.dataFolder) in str(x)) and (x.suffix == ".md"), self.files))        
         list(map(lambda x : self.mappingTable.update({x.stem : x}), self.files))
         list(map(lambda x : self.mappingTable.update({x.name : x}), self.files))                
         self.setupDB()        
-        self.getProjectPages()
-        self.numberOfProjects = len(self.pageLinks)
+        self.getProjectPages()        
         self.colorOrder = self.generateCardColorList(self.numberOfProjects)
         self.updateTime = int(time.time())
 
 
     def stop(self):
+        """
+        kills the process holding the Flask web server.  must be called if you want to update any of
+        the servers assets due to some undocumented(?) deep copy behavior of Flask and data that it
+        has access to.
+        """
+
         self.appThread.kill()
 
 
     def start(self):
+        """
+        runs all of the various config and setup processes and the starts the webserver on a seperate process so that execution is not halting
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
         self.config()        
         appRun = lambda : self.app.run(debug = False, host = socket.gethostbyname(socket.gethostname()))
         self.appThread = Process(target = appRun)
@@ -389,7 +420,10 @@ class Portfolio:
 
 
 class BasicEventHandler(FileSystemEventHandler):
-    """Logs all the events captured."""
+    """
+    custom Watchdog event handler which will set a flag high whenever the files and folders
+    being monitored get updated, and will set the flag low after you check for an update.
+    """
 
     def __init__(self):
         super(BasicEventHandler, self).__init__()
