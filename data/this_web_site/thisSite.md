@@ -4,12 +4,12 @@ summary: an ~~excuse~~ excercise to learn web development
 created-on: 29/07/2024 01:00PM CDT
 last-modified: 14/08/2024 01:34PM CDT
 author: Andrew Phifer
-link: NA
+link: https://github.com/TechyTrickster/personal_page
 ---
 
 
 # This Website! {#Title}
-##### NA {#Link}
+##### [github](https://github.com/TechyTrickster/personal_page) {#Link}
 
 ---
 
