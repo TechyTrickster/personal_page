@@ -5,9 +5,9 @@
             <div class = "d-flex flex-column col-3 darkBone min-vh-100">                                                
                 <div class = "text-wrap text-uppercase"><p class = "text-wrap fs-5">techytrickster @gmail.com</p></div>
                 <hr>                
-                <span class = "text-center {{cardColor[0]}} pt-1 pb-4"><a title = "{{pageData[0]['summary']}}" href = "{{pageData[0]['url']}}">{{pageData[0]['title']}}</a></span>
+                <span class = "text-center {{cardColor[0]}} pt-1 pb-4"><a title = "{{pageData[0]['summary']}}" href = "{{pageData[0]['URL']}}">{{pageData[0]['title']}}</a></span>
                 {%for i in range(1, len)%}
-                    <span class = "text-center {{cardColor[i]}} pt-1 pb-4"><a title = "{{pageData[i]['summary']}}" href = "{{pageData[i]['url']}}">{{pageData[i]['title']}}</a></span>
+                    <span class = "text-center {{cardColor[i]}} pt-1 pb-4"><a title = "{{pageData[i]['summary']}}" href = "{{pageData[i]['URL']}}">{{pageData[i]['title']}}</a></span>
                 {%endfor%}
             </div>
             <div class = "bone vr px-1"></div>
