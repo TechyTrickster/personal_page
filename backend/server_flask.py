@@ -2,17 +2,15 @@ from datetime import datetime
 import html
 from multiprocessing import Process
 import random
-import re
 import os, sys, sqlite3, socket
-from threading import Thread
 import time
 from bs4 import BeautifulSoup
 from functools import reduce
 from pathlib import Path
 from flask import Flask, Response, render_template, send_file, render_template_string
-from markdown import markdown, Markdown
+from markdown import  Markdown
 from watchdog.observers import Observer
-from watchdog.events import LoggingEventHandler, FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler
 
 
 projectName = "personal_page"
