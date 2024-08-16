@@ -272,6 +272,7 @@ class Portfolio:
             'title': x[0],
             'summary': x[2]
         }, projectLinks))
+
         self.numberOfProjects = len(self.linkData)
 
 
@@ -288,6 +289,11 @@ class Portfolio:
     @staticmethod
     def modifyImgTag(imgTag):        
         imgTag['class'] = imgTag.get('class', []) + ['img-fluid']
+
+
+    @staticmethod
+    def modifyTableTag(tableTag):
+        tableTag['class'] = tableTag.get('class', []) + ['table']
 
 
     def generateDBEntries(self):               
@@ -307,8 +313,10 @@ class Portfolio:
             createdOn = time.mktime(datetime.strptime(metaData['created-on'][0].strip(), "%d/%m/%Y %I:%M%p %Z").timetuple())
             modifiedOn = time.mktime(datetime.strptime(metaData['last-modified'][0].strip(), "%d/%m/%Y %I:%M%p %Z").timetuple())
             doc = BeautifulSoup(bodyBuffer, features = 'html.parser')
-            imageTags = doc.find_all('img')            
+            imageTags = doc.find_all('img') 
+            tableTags = doc.find_all('table')           
             list(map(lambda x : Portfolio.modifyImgTag(x), imageTags))
+            list(map(lambda x : Portfolio.modifyTableTag(x), tableTags))
             bodyBuffer2 = doc.prettify()
             body = html.escape(bodyBuffer2)
 
