@@ -113,7 +113,17 @@ class Portfolio:
     
 
     @staticmethod
-    def loadTextFile(filePath: Path) -> str:        
+    def loadTextFile(filePath: Path) -> str:       
+        """
+        small helper function to load an entire text file as a single string and return it.
+
+        Parameters:
+            filePath (Path): the path to the file you would like to load
+
+        Returns:
+            str: a string containing the raw text contained in the file at the provided path.
+        """ 
+
         handle = open(filePath, "r")
         output = handle.read()
         handle.close()
@@ -121,24 +131,66 @@ class Portfolio:
     
 
     def getData(self, name: str) -> Response:
+        """
+        function to trick Flask into letting you re-use the helper-function 'getFile'
+        Used to route requests for files in the data folder
+
+        Parameters:
+            name (str): the relative path to the file being requested
+
+        Returns:
+            Response: returns the file requested by the user
+
+        """
+
         return self.getFile("data", name)
     
 
     def getFront(self, name: str) -> Response:
-        return self.getFile("frontend", name)
+        """
+        function to trick Flask into letting you re-use the helper-function 'getFile'
+        Used to route requests for files in the frontend folder
 
+        Parameters:
+            name (str): the relative path to the file being requested
+
+        Returns:
+            Response: returns the file requested by the user
+
+        """
+
+        return self.getFile("frontend", name)
 
         
     def getFile(self, folder: str, name: str) -> Response:
-        print(name)
+        """
+        reusable function used to serve requested files back to the web users with correctly
+        defined mime-types.
 
-        pathToFile = rootDir / folder / name
-        print(f"getting file: {pathToFile}")
+        Parameters:
+            folder (str): the top level folder containing the files needed, defined by code, not through requests due to inherent limitations of request routing
+            name (str): the relative path to the file desired by the requester, minus the top level folder
+
+        Returns:
+            Response: returns the file requested by the user
+        """        
+
+        pathToFile = rootDir / folder / name        
         mimeType = self.mimeTable[pathToFile.suffix]
         return send_file(pathToFile, mimetype = mimeType)
 
 
     def getHomePage(self) -> str:
+        """
+        function to construct the template data for the homepage
+
+        Parameters:
+            None
+
+        Returns:
+            str: html text rendered by the Flask templating engine representing the complete project page to be shown to the user's browser
+        """
+
         homePagePath = self.mappingTable["homePage.html"]
         data = Portfolio.loadTextFile(homePagePath)
         output = render_template_string(data, projectLinks = self.pageLinks, projectNames = self.pageTitles, 
@@ -153,13 +205,21 @@ class Portfolio:
 
     
     def getProjectPage(self, name: str) -> str:
-        print(name)
+        """
+        function to construct the template data for the requested project page.
+        recalls the pre-rendered html for each page from an in-memory sqlite3 database.
+
+        Parameters:
+            name (str): the internal name (rather than the title) of the project being requested
+
+        Returns:
+            str: html text rendered by the Flask templating engine representing the complete project page to be shown to the user's browser
+        """
+
         projectPagePath = self.mappingTable["projectPage.html"]
         pageData = Portfolio.loadTextFile(projectPagePath)
-        print(pageData)
         pageBuffer = self.cursor.execute(f"select * from articles where pageName = '{name}';")        
         data = pageBuffer.fetchone()                
-        print(data)
         output = render_template_string(pageData, projectNames = self.pageTitles, 
                     projectLinks = self.pageLinks, title = data[1], 
                     createdOn = data[2], modifiedOn = data[3], 
@@ -169,8 +229,21 @@ class Portfolio:
         return output
 
 
+    #TODO: make this not crash when the input doesn't contain a matching tag
     @staticmethod
     def extractTaggedText(inputBody: list[str], tagName: str) -> str:        
+        """
+        a custom function which will return the text of the first element in the input list which contains a match for the given markdown attribute tag
+        will crash if there is no matching element.
+
+        Parameters:
+            inputBody (list[str]): a list of strings (each string in the list is a new line) of markdown formatted text
+            tagName (str): the name of the attribute tag you'd like the relevant text for
+        
+        Returns:
+            str: a string containing the text on the matching line of input strings, minus the attribute tag used to find it
+        """
+
         tagValue = f"{{#{tagName}}}"
         buffer = list(filter(lambda x : tagValue in x, inputBody))[0]
         output = buffer.replace(tagValue, "").replace("#", "").strip()
@@ -179,6 +252,17 @@ class Portfolio:
     
     @staticmethod
     def removeTagFromText(inputBody: list[str], tagName: str) -> list[str]:        
+        """
+        a custom function which will remove instances of input tag from the list of input strings in the output
+
+        Parameters:
+            inputBody (list[str]): a list of strings of markdown formatted text, presumably with tagged attributes
+            tagName (str): the name of the attribute you'd like to remove lines of text with matches for
+
+        Returns
+            list[str]: a copy of the input list of strings, minus any elements which contained matches for the input tag
+        """
+        
         tagValue = f"{{#{tagName}}}"
         output = list(filter(lambda x : tagValue not in x, inputBody))
         return output
