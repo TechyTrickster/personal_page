@@ -5,6 +5,7 @@ created-on: 29/07/2024 01:00PM CDT
 last-modified: 14/08/2024 01:34PM CDT
 author: Andrew Phifer
 link: https://github.com/TechyTrickster/personal_page
+folder: projects
 ---
 
 
@@ -15,6 +16,9 @@ link: https://github.com/TechyTrickster/personal_page
 
 ###### Introduction
 I began creating this website during my time on the bench at TCS in order to keep my development skills sharp and to re-learn the skills of a full stack web developer.  When i originally joined TCS in early 2021, I received training as one.  It was essentially a 2 year associates degree compressed into 4 or 5 months.  I learned at lot doing that, and I seem to have retained much of the fundamentals, as I've been able to pick up most of basics fairly quickly over theses past few weeks!
+
+
+[TOC]
 
 
 ###### design goals

@@ -5,6 +5,7 @@ created-on: 05/12/2020 01:00PM CDT
 last-modified: 12/12/2020 02:00PM CDT
 author: Andrew Phifer
 link: https://github.com/TechyTrickster/GuttenbergPressAnalysisInR
+folder: projects
 ---
 
 # Guttenberg Press Analysis in R {#Title}
