@@ -7,7 +7,7 @@ import time
 from bs4 import BeautifulSoup
 from functools import reduce
 from pathlib import Path
-from flask import Flask, Response, render_template, send_file, render_template_string
+from flask import Flask, Response, render_template, send_file, render_template_string, request
 from markdown import  Markdown
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -78,13 +78,50 @@ class Portfolio:
         self.connection = None
         self.cursor = None
         self.app = Flask(__name__, template_folder = self.templatePath)
-        self.app.add_url_rule("/home", view_func = self.getHomePage)
+        self.app.add_url_rule("/<name>", view_func = self.getCorePage)
+        # self.app.add_url_rule("/<name>", view_func = self.getDirectoryPage)
+        # self.app.add_url_rule("/<name>", view_func = self.getLoginPage)
+        # self.app.add_url_rule("/<name>", view_func = self.getNewProjectPage)
+        # self.app.add_url_rule("/<name>", view_func = self.getProjectsTimeLinePage)
         self.app.add_url_rule("/frontend/<path:name>", view_func = self.getFront)
         self.app.add_url_rule("/data/<path:name>", view_func = self.getData)
-        self.app.add_url_rule("/projects/<name>", view_func = self.getProjectPage)        
+        self.app.add_url_rule("/projects/<name>", view_func = self.getProjectPage)                
         self.colorOrder = []
         self.appThread = None
         self.updateTime = None
+
+
+    def getCorePage(self, name: str) -> str:        
+        """
+        function to construct the template data for the core pages, like the homepage
+        and about me
+
+        Parameters:
+            None
+
+        Returns:
+            str: html text rendered by the Flask templating engine representing the complete project page to be shown to the user's browser
+        """
+        print(f"core page {name}")
+        if name in ['home', 'contact-me', 'resume', 'about-me']:
+            corePagePath = self.mappingTable["corePage.html"]            
+            pageBuffer = self.cursor.execute(f"select * from articles where pageName = '{name}';")        
+            data = pageBuffer.fetchone()
+            pageData = Portfolio.loadTextFile(corePagePath)
+            output = render_template_string(pageData, pageData = self.linkData, 
+                        title = data[1], len = self.numberOfProjects, cardColor = self.colorOrder,
+                        bodyText = html.unescape(data[4]))
+        elif name == "directory":
+            pass
+        elif name == "login":
+            pass
+        elif name == "new-project-page":
+            pass
+        elif name == "projects-timeline":
+            pass
+
+        return output
+
 
 
     @staticmethod
@@ -176,30 +213,6 @@ class Portfolio:
         mimeType = self.mimeTable[pathToFile.suffix]
         return send_file(pathToFile, mimetype = mimeType)
 
-
-    def getHomePage(self) -> str:
-        """
-        function to construct the template data for the homepage
-
-        Parameters:
-            None
-
-        Returns:
-            str: html text rendered by the Flask templating engine representing the complete project page to be shown to the user's browser
-        """
-
-        homePagePath = self.mappingTable["homePage.html"]
-        data = Portfolio.loadTextFile(homePagePath)
-        output = render_template_string(data, pageData = self.linkData, 
-                    title = "Home", len = self.numberOfProjects, cardColor = self.colorOrder)
-        return output
-    
-
-    def getProjectTimeLine(self) -> str:
-        projectTimeLinePath = self.mappingTable["projectTimeLine.html"]
-        output = render_template(projectTimeLinePath)
-        return output
-
     
     def getProjectPage(self, name: str) -> str:
         """
@@ -216,7 +229,7 @@ class Portfolio:
         projectPagePath = self.mappingTable["projectPage.html"]
         pageData = Portfolio.loadTextFile(projectPagePath)
         pageBuffer = self.cursor.execute(f"select * from articles where pageName = '{name}';")        
-        data = pageBuffer.fetchone()                
+        data = pageBuffer.fetchone()
         output = render_template_string(pageData, pageData = self.linkData, title = data[1], 
                     createdOn = data[2], modifiedOn = data[3], 
                     bodyText = html.unescape(data[4]), sourceCodeLink = data[6], 
@@ -265,14 +278,30 @@ class Portfolio:
     
 
     def getProjectPages(self):
-        projectLinksBuffer = self.cursor.execute("select title, pageName, summary from articles")        
-        projectLinks = projectLinksBuffer.fetchall()        
-        self.linkData = list(map(lambda x : {
-            'URL': f"/projects/{x[1]}",
-            'title': x[0],
-            'summary': x[2]
-        }, projectLinks))
+        projectLinksBuffer = self.cursor.execute("select pageName, title, summary, folder from articles")        
+        projectLinks = projectLinksBuffer.fetchall()
+        print("==========================")
+        print("project links generated here")
+        print(projectLinks)
+        print(len(projectLinks))
+        print()
+        print()
+        self.linkData = [] #config is somehow getting called twice????
+        print("link data")
+        print(self.linkData)
 
+        for element in projectLinks:
+            print(element)
+            newURL = f"/{element[3]}/{element[0]}" if element[3] != "core" else f"/{element[0]}"
+            buffer = {
+                'URL': newURL,
+                'title': element[1],
+                'summary': element[2]
+            }
+            self.linkData.append(buffer)
+            print("space")
+        
+        print(len(self.linkData))
         self.numberOfProjects = len(self.linkData)
 
 
@@ -296,15 +325,26 @@ class Portfolio:
         tableTag['class'] = tableTag.get('class', []) + ['table']
 
 
+    def modifyCodeBlock(divTag):
+        check = divTag.get('class', [])
+        style = divTag.get('style', [])
+
+        if "codehilite" in check:
+            divTag['class'] = check + ['rounded']
+            divTag['style'] = style + ['background-color: #fffef7;'] + ['padding-top: 1%;'] + ['padding-bottom: 1%;'] + ['padding-left: 1%;'] + ['padding-right: 1%;']
+
+
+
     def generateDBEntries(self):               
         print("loading db contents") 
+        print(self.articlePaths)
 
         for element in self.articlePaths:
             pageName = element.stem                        
             raw0 = Portfolio.loadTextFile(element)
             print(f"file: {pageName}\n {raw0}")
             raw1 = Portfolio.removePreviewMaterials(raw0)
-            converter = Markdown(extensions = ['extra', 'markdown_mark', 'markdown_checklist.extension', 'sane_lists', 'pymdownx.tilde', 'codehilite', 'meta', 'nl2br'])
+            converter = Markdown(extensions = ['extra', 'markdown_mark', 'markdown_checklist.extension', 'sane_lists', 'pymdownx.tilde', 'codehilite', 'meta', 'nl2br', 'toc'])
             bodyBuffer = converter.convert(raw1)
             metaData = converter.Meta
             title = metaData['title'][0]
@@ -312,16 +352,19 @@ class Portfolio:
             summary = metaData['summary'][0]
             createdOn = time.mktime(datetime.strptime(metaData['created-on'][0].strip(), "%d/%m/%Y %I:%M%p %Z").timetuple())
             modifiedOn = time.mktime(datetime.strptime(metaData['last-modified'][0].strip(), "%d/%m/%Y %I:%M%p %Z").timetuple())
+            folder = metaData['folder'][0]
             doc = BeautifulSoup(bodyBuffer, features = 'html.parser')
             imageTags = doc.find_all('img') 
             tableTags = doc.find_all('table')           
-            list(map(lambda x : Portfolio.modifyImgTag(x), imageTags))
+            divTags = doc.find_all('div')
+            list(map(lambda x : Portfolio.modifyImgTag(x), imageTags)) #could these be converted to clever css?
             list(map(lambda x : Portfolio.modifyTableTag(x), tableTags))
+            list(map(lambda x : Portfolio.modifyCodeBlock(x), divTags))
             bodyBuffer2 = doc.prettify()
             body = html.escape(bodyBuffer2)
 
-            insertStatement = "insert into articles values (?, ?, ?, ?, ?, ?, ?)"
-            self.cursor.execute(insertStatement, (pageName, title, createdOn, modifiedOn, body, summary, codeLink))
+            insertStatement = "insert into articles values (?, ?, ?, ?, ?, ?, ?, ?)"
+            self.cursor.execute(insertStatement, (pageName, title, createdOn, modifiedOn, body, summary, codeLink, folder))
 
         self.connection.commit()
 
@@ -390,9 +433,9 @@ class Portfolio:
         self.files.extend(Portfolio.findFiles(rootDir / 'data'))
         self.articlePaths = list(filter(lambda x : (str(self.dataFolder) in str(x)) and (x.suffix == ".md"), self.files))        
         list(map(lambda x : self.mappingTable.update({x.stem : x}), self.files))
-        list(map(lambda x : self.mappingTable.update({x.name : x}), self.files))                
-        self.setupDB()        
-        self.getProjectPages()        
+        list(map(lambda x : self.mappingTable.update({x.name : x}), self.files))
+        self.setupDB()
+        self.getProjectPages()
         self.colorOrder = self.generateCardColorList(self.numberOfProjects)
         self.updateTime = int(time.time())
 
