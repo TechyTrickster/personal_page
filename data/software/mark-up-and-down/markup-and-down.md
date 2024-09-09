@@ -16,7 +16,7 @@ I started this project for two reasons.
 
 The approach I've been taking has been tailored to avoid the whole "one standard to rule them all" problem.  
 
-![one more standard](/data/mark-up-and-down/xkcd-standards.png)[^1]
+![one more standard](/data/software/mark-up-and-down/xkcd-standards.png)[^1]
 
 
 Instead of making a new standard, what i've instead done is create an application to simply support all of them, all in a single application.  This eliminates the common problem with authoring markdown documents and not knowing for *sure* what they're going to look like on someone else's system.  

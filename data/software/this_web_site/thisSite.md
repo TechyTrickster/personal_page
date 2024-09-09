@@ -39,11 +39,11 @@ Currently, you have to manually modifiy the home page and seperately update a re
 
 The markdown documents for projects require you to include some standardized meta-data at the top of the page.  this info is stripped out and written to the database to be used to load fields in the project page template.  Here is an example
 
-![project template](/data/this_web_site/project-page-meta-data.png)
+![project template](/data/software/this_web_site/project-page-meta-data.png)
 
 You'll need to add those tags.  The system will, for example, use the data in the title tag to generate the text in the page header, like this
 
-![project-in-action](/data/this_web_site/how-meta-data-is-used.png)
+![project-in-action](/data/software/this_web_site/how-meta-data-is-used.png)
 
 
 ###### Header Features
