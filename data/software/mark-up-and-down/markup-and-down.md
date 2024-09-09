@@ -5,7 +5,7 @@ created-on: 27/08/2024 01:01PM CDT
 last-modified: 09/09/2024 11:38PM CDT
 author: Andrew Phifer
 link: NA
-folder: projects
+folder: software
 ---
 
 # Markdown and Up

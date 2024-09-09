@@ -5,7 +5,7 @@ created-on: 29/07/2024 01:00PM CDT
 last-modified: 14/08/2024 01:34PM CDT
 author: Andrew Phifer
 link: https://github.com/TechyTrickster/personal_page
-folder: projects
+folder: software
 ---
 
 
