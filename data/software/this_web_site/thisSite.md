@@ -55,6 +55,15 @@ The header for each project page is of course populated with data taken from the
 4. neat visual effect of flipping a flash card between the timestamp and the human readable localization
 
 
+###### Images
+in order to keep page load times manageable, i've been using ffmpeg[^1], a popular and industry standard media manipulation tool to create high quality scaled down versions of all the images included on the site.  This frequently results in a 99% file size reduction.  As a result, project hosting costs are also reduced while image quality is maintained at a more than acceptable level for illustrative purposes.  As an example, the original image[^2] of the Miyoo Mini Plus was about 4.2MB, the version delivered by the site is about 42KB, nearly 100 times smaller.
+
+
+
+[^1]: [https://www.ffmpeg.org/about.html](https://www.ffmpeg.org/about.html) - ffmpeg about page
+[^2]: [link](/maker/miyoo-mini-plus-case) - Miyoo Mini Shell Project
+
+
 
 
 
