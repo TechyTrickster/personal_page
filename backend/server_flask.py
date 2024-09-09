@@ -332,7 +332,7 @@ class Portfolio:
 
         if "codehilite" in check:
             divTag['class'] = check + ['rounded']
-            divTag['style'] = style + ['background-color: #fffef7;'] + ['padding-top: 1%;'] + ['padding-bottom: 1%;'] + ['padding-left: 1%;'] + ['padding-right: 1%;']
+            divTag['style'] = style + ['background-color: #fffef7;'] + ['padding-top: 1%;'] + ['padding-bottom: 1%;'] + ['padding-left: 1%;'] + ['padding-right: 1%;'] + ['max-width:calc(50vw - 1px);']
 
 
 
