@@ -5,5 +5,6 @@ create table articles (
     modifiedDate int,
     body text,
     summary text,
-    sourceCodeLink text
+    sourceCodeLink text,
+    folder text
 )
