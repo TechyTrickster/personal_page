@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block pageContent %}
+    <p>
+        create a new project page!  feel free to use markdown
+    </p>
+    <form action = "/newPageSubmit" method="POST">
+        <div>{{projectForm.title.label}} : {{projectForm.title()}}</div>
+        <div>{{projectForm.summary.label}} : {{projectForm.summary()}}</div>
+        <div>
+            {{projectForm.body.label}}
+            <br>
+            {{projectForm.body()}}
+        </div>
+        <div>{{projectForm.sourceCodeLink.label}} : {{projectForm.sourceCodeLink()}}</div>    
+    </form>
+{% endblock %}
