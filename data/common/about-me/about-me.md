@@ -9,7 +9,7 @@ folder: core
 ---
 
 
-I'm a IT industry professional of three and a half years with strong communication skills.  I've gained experience in many different rolls during that time, as I started out doing solo, end to end software development in an Export Controlled Environment.  Overall, I have worked in the following roles;
+I'm a IT industry professional of three and a half years with strong communication skills. My hobbies include 3D modeling / printing, reading, writing, video games / VR, and running / playing TTRPG campaigns.  I've gained experience in many different rolls during that time, as I started out doing solo, end to end software development in an Export Controlled Environment.  Overall, I have worked in the following roles;
 
 1. Product Owner
 2. Scrum Master
