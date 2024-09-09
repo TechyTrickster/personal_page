@@ -84,7 +84,7 @@ class Portfolio:
         # self.app.add_url_rule("/<name>", view_func = self.getNewProjectPage)
         # self.app.add_url_rule("/<name>", view_func = self.getProjectsTimeLinePage)
         
-        self.app.add_url_rule("/data/<name>", view_func = self.getData)
+        self.app.add_url_rule("/data/<path:name>", view_func = self.getData)
         self.app.add_url_rule("/frontend/<name>", view_func = self.getFront)
         self.app.add_url_rule("/<folder>/<name>", view_func = self.getProjectPage)
         self.colorOrder = []
