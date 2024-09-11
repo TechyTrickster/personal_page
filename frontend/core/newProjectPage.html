@@ -5,13 +5,15 @@
         create a new project page!  feel free to use markdown
     </p>
     <form action = "/newPageSubmit" method="POST">
-        <div>{{projectForm.title.label}} : {{projectForm.title()}}</div>
-        <div>{{projectForm.summary.label}} : {{projectForm.summary()}}</div>
+        {{projectForm.csrf_token}}
+        {{projectForm.title.label}} : {{projectForm.title()}}
+        {{projectForm.summary.label}} : {{projectForm.summary()}}
         <div>
             {{projectForm.body.label}}
             <br>
-            {{projectForm.body()}}
+            {{projectForm.body(cols = 50, rows = 50)}}
         </div>
         <div>{{projectForm.sourceCodeLink.label}} : {{projectForm.sourceCodeLink()}}</div>    
+        <input type = "submit" value = "add">
     </form>
 {% endblock %}

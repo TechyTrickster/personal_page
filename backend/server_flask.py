@@ -1,17 +1,16 @@
-from datetime import datetime
 import html
-from multiprocessing import Process
 import random
 import os, sys, sqlite3, socket
 import time
 from bs4 import BeautifulSoup
 from functools import reduce
 from pathlib import Path
-from flask import Flask, Response, render_template, send_file, render_template_string, request
+from flask import Flask, Response, redirect, render_template, send_file, render_template_string, request
 from markdown import  Markdown
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-
+from datetime import datetime
+from multiprocessing import Process
 
 projectName = "personal_page"
 originalDir = os.getcwd()
@@ -24,7 +23,7 @@ sys.path.append(str(rootDir))
 sys.path = sorted(list(set(sys.path)))
 initial = str(Process.pid)
 
-
+from backend.newProjectPageForm import NewProjectPage
 
 #TODO: add caching of pages
 #TODO: add auto-update of pages with md or image files are updated
@@ -81,7 +80,8 @@ class Portfolio:
         self.app.add_url_rule("/<name>", view_func = self.getCorePage)
         # self.app.add_url_rule("/<name>", view_func = self.getDirectoryPage)
         # self.app.add_url_rule("/<name>", view_func = self.getLoginPage)
-        # self.app.add_url_rule("/<name>", view_func = self.getNewProjectPage)
+        self.app.add_url_rule("/create-new-project", view_func = self.getNewProjectPage)
+        self.app.add_url_rule("/newPageSubmit", methods = ['GET', 'POST'], view_func = self.addPage)
         # self.app.add_url_rule("/<name>", view_func = self.getProjectsTimeLinePage)
         
         self.app.add_url_rule("/data/<path:name>", view_func = self.getData)
@@ -306,6 +306,28 @@ class Portfolio:
         self.numberOfProjects = len(self.linkData)
 
 
+    def getNewProjectPage(self):
+        print("create new project page")
+        form = NewProjectPage()
+        projectPagePath = self.mappingTable["newProjectPage.html"]
+        pageData = Portfolio.loadTextFile(projectPagePath)        
+        output = render_template_string(pageData, pageData = self.linkData, title = 'Create a New Project',                     
+                    len = self.numberOfProjects, cardColor = self.colorOrder,
+                    systemUpdateTime = self.updateTime, projectForm = form)
+        
+        return output
+    
+
+    def addPage(self):
+        print("adding page")
+        form = NewProjectPage()
+        form.validate_on_submit()
+        print(form.body.data)
+        return redirect('/home')
+
+
+
+
     def removePreviewMaterials(data: str) -> str:
         lines = data.split('\n')
         hasPreviewTitle = any(list(map(lambda x : "#Title" in x, lines)))
@@ -333,7 +355,6 @@ class Portfolio:
         if "codehilite" in check:
             divTag['class'] = check + ['rounded']
             divTag['style'] = style + ['background-color: #fffef7;'] + ['padding-top: 1%;'] + ['padding-bottom: 1%;'] + ['padding-left: 1%;'] + ['padding-right: 1%;'] + ['max-width:calc(50vw - 1px);']
-
 
 
     def generateDBEntries(self):               
