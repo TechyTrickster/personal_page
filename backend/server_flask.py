@@ -76,6 +76,7 @@ class Portfolio:
 
         self.connection = None
         self.cursor = None
+        self.insertStatement = "insert into articles values (?, ?, ?, ?, ?, ?, ?, ?)"
         self.app = Flask(__name__, template_folder = self.templatePath)
         self.app.config['SECRET_KEY'] = os.urandom(32)
         self.app.config['WTF_CSRF_SECRET_KEY'] = os.urandom(32)
@@ -83,6 +84,7 @@ class Portfolio:
         # self.app.add_url_rule("/<name>", view_func = self.getDirectoryPage)
         # self.app.add_url_rule("/<name>", view_func = self.getLoginPage)
         self.app.add_url_rule("/create-new-project", view_func = self.getNewProjectPage)
+        self.app.add_url_rule("/favicon.ico", view_func = self.getFront)
         self.app.add_url_rule("/newPageSubmit", methods = ['GET', 'POST'], view_func = self.addPage)
         # self.app.add_url_rule("/<name>", view_func = self.getProjectsTimeLinePage)
         
@@ -183,7 +185,7 @@ class Portfolio:
         return self.getFile("data", name)
     
 
-    def getFront(self, name: str) -> Response:
+    def getFront(self, name: str = None) -> Response:
         """
         function to trick Flask into letting you re-use the helper-function 'getFile'
         Used to route requests for files in the frontend folder
@@ -195,6 +197,9 @@ class Portfolio:
             Response: returns the file requested by the user
 
         """
+        
+        if name == None:
+            name = Path(request.path).name
 
         return self.getFile("frontend", name)
 
@@ -212,7 +217,7 @@ class Portfolio:
             Response: returns the file requested by the user
         """        
 
-        pathToFile = rootDir / folder / name        
+        pathToFile = rootDir / folder / str(name)        
         mimeType = self.mimeTable[pathToFile.suffix]
         return send_file(pathToFile, mimetype = mimeType)
 
@@ -323,12 +328,25 @@ class Portfolio:
     def addPage(self):
         print("adding page")
         form = NewProjectPage()
-        form.validate_on_submit()
+        # form.validate_on_submit()
         print(form.body.data)
+        self.insertNewPageToDB(form)
         return redirect('/home')
 
 
-
+    def insertNewPageToDB(self, form):
+        buffer = (
+            form.title.data.strip().replace(" ", "-"),
+            form.title.data.strip(),
+            time.time(),
+            time.time(),
+            form.body.data.strip(),
+            form.summary.data.strip(),
+            form.sourceCodeLink.data.strip(),
+            form.folder.data.strip()
+        )
+        self.cursor.execute(self.insertStatement, buffer)
+        self.config()
 
     def removePreviewMaterials(data: str) -> str:
         lines = data.split('\n')
@@ -387,8 +405,7 @@ class Portfolio:
             bodyBuffer2 = doc.prettify()
             body = html.escape(bodyBuffer2)
 
-            insertStatement = "insert into articles values (?, ?, ?, ?, ?, ?, ?, ?)"
-            self.cursor.execute(insertStatement, (pageName, title, createdOn, modifiedOn, body, summary, codeLink, folder))
+            self.cursor.execute(self.insertStatement, (pageName, title, createdOn, modifiedOn, body, summary, codeLink, folder))
 
         self.connection.commit()
 
