@@ -6,14 +6,23 @@
     </p>
     <form action = "/newPageSubmit" method="POST">
         {{projectForm.csrf_token}}
-        {{projectForm.title.label}} : {{projectForm.title()}}
-        {{projectForm.summary.label}} : {{projectForm.summary()}}
-        <div>
-            {{projectForm.body.label}}
-            <br>
-            {{projectForm.body(cols = 50, rows = 50)}}
+        <div class = "form-group">
+            <label>{{projectForm.title.label}}</label>
+            {{projectForm.title(class = "form-control")}}
         </div>
-        <div>{{projectForm.sourceCodeLink.label}} : {{projectForm.sourceCodeLink()}}</div>    
+        <div class = "form-group">
+            <label>{{projectForm.summary.label}}</label>
+            {{projectForm.summary(class = "form-control")}}
+        </div>
+        <div class = "form-group"></div>
+            <label>{{projectForm.body.label}}</label>
+            <br>
+            {{projectForm.body(class = "form-control", rows = 30)}}
+        </div>
+        <div class = "form-group">
+            <label>{{projectForm.sourceCodeLink.label}}</label>
+            {{projectForm.sourceCodeLink(class = "form-control")}}
+        </div>                
         <input type = "submit" value = "add">
     </form>
 {% endblock %}
