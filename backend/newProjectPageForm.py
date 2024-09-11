@@ -21,5 +21,6 @@ initial = str(Process.pid)
 class NewProjectPage(FlaskForm):
     title = StringField('project title', validators = [validators.Length(min = 5, max = 64)])
     summary = StringField('project summary', validators = [validators.Length(min = 10, max = 128)])
-    body = TextAreaField('project body', validators = [validators.Length(min = 10, max = 16000)])
+    body = TextAreaField('project body', validators = [validators.Length(min = 10, max = 32000)])
     sourceCodeLink = StringField('source code URL', validators = [validators.URL(), validators.Length(min = 5, max = 512)])
+    folder = StringField('folder name', validators = [validators.Length(min = 5, max = 128)])
