@@ -77,6 +77,8 @@ class Portfolio:
         self.connection = None
         self.cursor = None
         self.app = Flask(__name__, template_folder = self.templatePath)
+        self.app.config['SECRET_KEY'] = os.urandom(32)
+        self.app.config['WTF_CSRF_SECRET_KEY'] = os.urandom(32)
         self.app.add_url_rule("/<name>", view_func = self.getCorePage)
         # self.app.add_url_rule("/<name>", view_func = self.getDirectoryPage)
         # self.app.add_url_rule("/<name>", view_func = self.getLoginPage)
