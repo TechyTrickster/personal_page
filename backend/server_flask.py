@@ -330,23 +330,32 @@ class Portfolio:
         form = NewProjectPage()
         # form.validate_on_submit()
         print(form.body.data)
+        newPage = f"""
+            ---
+            title: 
+            summary:
+            created-on:
+            last-modified: {time.time()}
+            author: Andrew Phifer
+            link: {form.sourceCodeLink.data.strip()}
+            folder: {form.folder.data.strip()}
+            ---
+            {form.body.data.strip()}
+        """
+        #(
+        #     form.title.data.strip().replace(" ", "-"),
+        #     form.title.data.strip(),
+        #     time.time(),
+        #     time.time(),
+        #     form.body.data.strip(),
+        #     form.summary.data.strip(),
+        #     form.sourceCodeLink.data.strip(),
+        #     form.folder.data.strip()
+        # )
         self.insertNewPageToDB(form)
+        self.config()
         return redirect('/home')
 
-
-    def insertNewPageToDB(self, form):
-        buffer = (
-            form.title.data.strip().replace(" ", "-"),
-            form.title.data.strip(),
-            time.time(),
-            time.time(),
-            form.body.data.strip(),
-            form.summary.data.strip(),
-            form.sourceCodeLink.data.strip(),
-            form.folder.data.strip()
-        )
-        self.cursor.execute(self.insertStatement, buffer)
-        self.config()
 
     def removePreviewMaterials(data: str) -> str:
         lines = data.split('\n')
