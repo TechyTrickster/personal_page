@@ -21,3 +21,5 @@ I have three goals in mind for this project
 
 
 so far, i have created a prototype model in onshape for the device based on a large number of measurements I've made using my digital calipers.  The first print of that prototype had a number of issues, including button hole alignment, and button hole tolerance.  
+
+![early prototype shell](/data/maker/miyoo-mini-plus-case/miyoo-mini-plus-shell-prototype-1.jpg)
